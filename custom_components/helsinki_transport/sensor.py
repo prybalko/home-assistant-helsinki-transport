@@ -1,6 +1,6 @@
 # mypy: disable-error-code="attr-defined"
 
-"""The Berlin (BVG) and Brandenburg (VBB) transport integration."""
+"""The Helsinki (HSL) transport integration."""
 from __future__ import annotations
 import logging
 from datetime import datetime, timedelta
@@ -36,7 +36,7 @@ from .const import (  # pylint: disable=unused-import
     CONF_TYPE_SUBWAY,
     CONF_TYPE_TRAM,
     CONF_DEPARTURES_NAME,
-    DEFAULT_ICON,
+    DEFAULT_ICON, CONF_DEPARTURES_API_KEY,
 )
 from .departure import Departure
 
@@ -58,6 +58,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
             {
                 vol.Required(CONF_DEPARTURES_NAME): cv.string,
                 vol.Required(CONF_DEPARTURES_STOP_ID): cv.positive_int,
+                vol.Required(CONF_DEPARTURES_API_KEY): cv.string,
                 vol.Optional(CONF_DEPARTURES_DIRECTION): cv.string,
                 vol.Optional(CONF_DEPARTURES_EXCLUDED_STOPS): cv.string,
                 vol.Optional(CONF_DEPARTURES_DURATION): cv.positive_int,
@@ -143,24 +144,31 @@ class TransportSensor(SensorEntity):
         self.departures = self.fetch_departures()
 
     def fetch_directional_departure(self, direction: str | None) -> list[Departure]:
+        query = f"""
+        {{
+                stop(id: "HSL:{self.stop_id}") {{
+                    name
+                      stoptimesWithoutPatterns {{
+                            scheduledArrival
+                            realtimeArrival
+                            arrivalDelay
+                            scheduledDeparture
+                            realtimeDeparture
+                            departureDelay
+                            realtime
+                            realtimeState
+                            serviceDay
+                            headsign
+                            }}
+                }}
+            }}
+            """
+        headers = {"digitransit-subscription-key": self.config.get(CONF_DEPARTURES_API_KEY)}
         try:
-            response = requests.get(
-                url=f"{API_ENDPOINT}/stops/{self.stop_id}/departures",
-                params={
-                    "when": (
-                        datetime.utcnow() + timedelta(minutes=self.walking_time)
-                    ).isoformat(),
-                    "direction": direction,
-                    "duration": self.duration,
-                    "results": API_MAX_RESULTS,
-                    "suburban": self.config.get(CONF_TYPE_SUBURBAN) or False,
-                    "subway": self.config.get(CONF_TYPE_SUBWAY) or False,
-                    "tram": self.config.get(CONF_TYPE_TRAM) or False,
-                    "bus": self.config.get(CONF_TYPE_BUS) or False,
-                    "ferry": self.config.get(CONF_TYPE_FERRY) or False,
-                    "express": self.config.get(CONF_TYPE_EXPRESS) or False,
-                    "regional": self.config.get(CONF_TYPE_REGIONAL) or False,
-                },
+            response = requests.post(
+                url=API_ENDPOINT,
+                json={'query': query},
+                headers=headers,
                 timeout=30,
             )
             response.raise_for_status()
@@ -175,9 +183,12 @@ class TransportSensor(SensorEntity):
 
         # parse JSON response
         try:
-            departures = response.json()
+            departures = response.json()['data']['stop']['stoptimesWithoutPatterns']
         except requests.exceptions.InvalidJSONError as ex:
             _LOGGER.error(f"API invalid JSON: {ex}")
+            return []
+        except KeyError as ex:
+            _LOGGER.error(f"API unexpected response: {ex}")
             return []
 
         if self.excluded_stops is None:
@@ -188,8 +199,7 @@ class TransportSensor(SensorEntity):
         # convert api data into objects
         return [
             Departure.from_dict(departure)
-            for departure in departures.get("departures")
-            if departure["stop"]["id"] not in excluded_stops
+            for departure in departures
         ]
 
     def fetch_departures(self) -> list[Departure]:

@@ -24,18 +24,16 @@ class Departure:
 
     @classmethod
     def from_dict(cls, source):
-        line_type = source.get("line", {}).get("product")
+        line_type = "metro"
         line_visuals = TRANSPORT_TYPE_VISUALS.get(line_type) or {}
-        timestamp = datetime.fromisoformat(
-            source.get("when") or source.get("plannedWhen")
-        )
+        timestamp = datetime.fromtimestamp(source["realtimeArrival"] + source["serviceDay"])
         return cls(
-            trip_id=source["tripId"],
-            line_name=source.get("line", {}).get("name"),
+            trip_id=source["scheduledArrival"],
+            line_name=line_visuals.get("code"),
             line_type=line_type,
             timestamp=timestamp,
             time=timestamp.strftime("%H:%M"),
-            direction=source.get("direction"),
+            direction=source.get("headsign"),
             icon=line_visuals.get("icon") or DEFAULT_ICON,
             bg_color=source.get("line", {}).get("color", {}).get("bg"),
             fallback_color=line_visuals.get("color"),

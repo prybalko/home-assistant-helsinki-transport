@@ -1,12 +1,13 @@
 from datetime import timedelta
 
-DOMAIN = "berlin_transport"
+DOMAIN = "helsinki_transport"
 SCAN_INTERVAL = timedelta(seconds=90)
-API_ENDPOINT = "https://v6.vbb.transport.rest"
+API_ENDPOINT = "https://api.digitransit.fi/routing/v1/routers/hsl/index/graphql"
 API_MAX_RESULTS = 15
 
 DEFAULT_ICON = "mdi:clock"
 
+CONF_DEPARTURES_API_KEY = "api_key"
 CONF_DEPARTURES = "departures"
 CONF_DEPARTURES_NAME = "name"
 CONF_DEPARTURES_STOP_ID = "stop_id"
@@ -22,6 +23,7 @@ CONF_TYPE_BUS = "bus"
 CONF_TYPE_FERRY = "ferry"
 CONF_TYPE_EXPRESS = "express"
 CONF_TYPE_REGIONAL = "regional"
+CONF_TYPE_METRO = "metro"
 
 TRANSPORT_TYPE_VISUALS = {
     CONF_TYPE_SUBURBAN: {
@@ -58,5 +60,10 @@ TRANSPORT_TYPE_VISUALS = {
         "code": "RE",
         "icon": "mdi:train",
         "color": "#F01414"
-    }
+    },
+    CONF_TYPE_METRO: {
+        "code": "M",
+        "icon": "mdi:subway",
+        "color": "#FF6319"
+    },
 }

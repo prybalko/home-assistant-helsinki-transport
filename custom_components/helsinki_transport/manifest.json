@@ -1,0 +1,16 @@
+{
+  "domain": "helsinki_transport",
+  "name": "Helsinki (HSL) transport",
+  "codeowners": ["@prybalko"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/prybalko/home-assistant-helsinki-transport",
+  "homekit": {},
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/prybalko/home-assistant-helsinki-transport/issues",
+  "requirements": [],
+  "ssdp": [],
+  "version": "0.1.0",
+  "zeroconf": []
+}
