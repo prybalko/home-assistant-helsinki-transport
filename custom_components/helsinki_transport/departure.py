@@ -13,6 +13,7 @@ class Departure:
     line_name: str
     line_type: str
     timestamp: datetime
+    is_live: bool
     time: datetime
     direction: str | None = None
     icon: str | None = None
@@ -34,6 +35,7 @@ class Departure:
             timestamp=timestamp,
             time=timestamp.strftime("%H:%M"),
             direction=source.get("headsign"),
+            is_live=source.get("realtime", False),
             icon=line_visuals.get("icon") or DEFAULT_ICON,
             bg_color=source.get("line", {}).get("color", {}).get("bg"),
             fallback_color=line_visuals.get("color"),
@@ -53,6 +55,7 @@ class Departure:
             "line_name": self.line_name,
             "line_type": self.line_type,
             "time": self.time,
+            "is_live": self.is_live,
             "timestamp": self.timestamp,
             "direction": self.direction,
             "color": color,
