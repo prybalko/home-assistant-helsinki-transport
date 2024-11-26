@@ -2,7 +2,7 @@ from datetime import timedelta
 
 DOMAIN = "helsinki_transport"
 SCAN_INTERVAL = timedelta(seconds=90)
-API_ENDPOINT = "https://api.digitransit.fi/routing/v1/routers/hsl/index/graphql"
+API_ENDPOINT = "https://api.digitransit.fi/routing/v2/hsl/gtfs/v1"
 API_MAX_RESULTS = 15
 
 DEFAULT_ICON = "mdi:clock"
